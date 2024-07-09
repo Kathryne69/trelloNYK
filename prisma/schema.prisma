@@ -1,0 +1,104 @@
+datasource db {
+  provider     = "postgresql"
+  url          = env("DATABASE_URL")
+  relationMode = "prisma"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Board {
+  id            String @id @default(uuid())
+  orgId         String
+  title         String
+  imageId       String
+  imageThumbUrl String
+  imageFullUrl  String
+  imageUserName String
+  imageLinkHTML String
+
+  lists List[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model List {
+  id      String @id @default(uuid())
+  title   String
+  order   Int
+  boardId String
+  board   Board  @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  cards   Card[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([boardId])
+}
+
+model Card {
+  id          String  @id @default(uuid())
+  title       String
+  order       Int
+  description String?
+
+  listId String
+  list   List   @relation(fields: [listId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@index([listId])
+}
+
+model Comment {
+  id         String      @id @default(uuid())
+  text       String
+  userId     String
+  userImage  String
+  userName   String
+  entityId   String // ID of the entity the comment belongs to (e.g., board, list, card)
+  entityType ENTITY_TYPE // Type of entity the comment belongs to (e.g., BOARD, LIST, CARD)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([entityId, entityType], name: "entity_comments_index")
+}
+
+enum ACTION {
+  CREATE
+  UPDATE
+  DELETE
+  MOVE
+  ARCHIEVE
+  SHARE
+  COPY
+}
+
+enum ENTITY_TYPE {
+  BOARD
+  LIST
+  CARD
+}
+
+model AuditLog {
+  id                 String      @id @default(uuid())
+  orgId              String
+  action             ACTION
+  entityId           String
+  entityType         ENTITY_TYPE
+  entityTitle        String
+  userId             String
+  userImage          String
+  userName           String
+  sourceBoardId      String? // Add this field to capture the source board ID for moves
+  destinationBoardId String? // Add this field to capture the destination board ID for moves
+  sourceListId       String? // Add this field to capture the source list ID for moves
+  destinationListId  String? // Add this field to capture the destination list ID for moves
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

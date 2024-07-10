@@ -44,12 +44,7 @@ export const BoardList = async () => {
             group-hover: bg-black/40 transition"/>
             <p className="relative font-semibold text-white">
                 {board.title}
-            </p>
-            
-            
-             
-        
-                
+            </p>  
             </Link>
 
            ))}

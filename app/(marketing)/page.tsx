@@ -41,7 +41,7 @@ const MarketingPage = () => {
         )}
       >
         <h1
-          className="text-4xl md:text-6xl text-center text-neutral-800 mb-6"
+          className="text-5xl md:text-6xl text-center text-neutral-800 mb-6"
           style={{
             marginTop: -100,
             color: "#F8FBFF",
@@ -51,20 +51,21 @@ const MarketingPage = () => {
             textShadow: '5px 5px 5px rgba(0, 0, 0, 0.5)', // Adding text shadow for stroke effect
           }}
         >
-          MARITIME E-TRAINING, INC.
+          NYK-FIL MARITIME E-TRAINING, INC.
         </h1>
         <div
           className={cn(
-            "text-3xl md:text-6xl bg-gradient-to-r from-blue-600 to-red-600 text-white px-4 p-2 rounded-md pb-4 w-fit",
+            "text-3xl md:text-5xl bg-gradient-to-r from-blue-600 to-pink-600 text-white px-4 p-2 rounded-md pb-4 w-fit",
             "relative z-1" // Add relative positioning and z-index
           )}
           style={{
-            fontFamily: "palatino linotype",
+            fontFamily: "Verdana",
             textShadow: '2px 2px 2px rgba(0, 0, 0, 0.5)',
+            fontWeight: 550,
             opacity: .9, // Adding text shadow for stroke effect
           }}
         >
-          Work Forward.
+           Ensuring Sea Safety
         </div>
       </div>
       <div
@@ -78,8 +79,7 @@ const MarketingPage = () => {
           textShadow: '2px 2px 2px rgba(1, 1, 1, 10)', // Adding text shadow for stroke effect
         }}
       >
-        Simple, flexible, and powerful. All it takes are boards, lists, and cards
-        to get a clear view of who’s doing what and what needs to get done.
+        Leading provider of world-class merchant marine personnel for NYK Line 
       </div>
     </div>
   );

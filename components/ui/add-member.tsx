@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import styled from 'styled-components';
+import React, { useState, useEffect } from "react";
+import styled from "styled-components";
 
 interface AddMembersProps {
   onClose: () => void;
@@ -23,9 +23,12 @@ const Popup = styled.div`
   padding: 20px;
   border-radius: 10px;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
-  width: 500px; /* added width */
-  height: auto;
+  width: ${props => props.hasMembers ? '600px' : '500px'};
+  max-height: 80vh;
+  overflow: auto;
+  transition: width 1s ease, height 1s ease;
 `;
+
 
 const Header = styled.div`
   display: flex;
@@ -63,60 +66,145 @@ const Input = styled.input`
 
 const ButtonContainer = styled.div`
   display: flex;
-  justify-content: space-between; /* Align buttons to the right */
-  align-items: center; /* Align items vertically */
+  justify-content: space-between;
+  align-items: center;
 `;
 
 const AddButton = styled.button`
-  background-color: #016064;
+  background-color: #0369A1;
   color: #fff;
   padding: 10px 20px;
   border: none;
   border-radius: 5px;
   cursor: pointer;
+  transition: background-color 0.3s ease;
+
+  &:hover {
+    background-color: #014d4f;
+  }
 `;
 
-const NameList = styled.ul`
-  list-style: none;
-  padding: 0;
-  margin: 0;
+const ConfirmButton = styled.button`
+  background-color: #0369A1;
+  color: #fff;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+
+  &:hover {
+    background-color: #014d4f;
+  }
+`;
+
+const TableContainer = styled.div`
+  height: 200px;
+  overflow-y: auto;
+  border-radius: 5px
+`;
+
+const Table = styled.table`
+  width: 100%;
+  border-collapse: collapse;
+`;
+
+const Th = styled.th`
+  background-color: #0369A1;
+  font-weight: 500;
+  padding: 8px;
+  border-radius: 1px;
+  width: 75%;
+  text-align: center;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+`;
+
+const Td = styled.td`
+  padding: 8px;
+  text-align: center;
+  border-bottom: 1px solid #ccc;
+`;
+
+const ListItem = styled.tr<{ isHighlighted?: boolean }>`
+  font-size: 12px;
   color: #000;
+  ${(props) =>
+    props.isHighlighted &&
+    `
+    background-color: #f1f3f2;
+  `}
 `;
 
 const RemoveButton = styled.button`
   background-color: transparent;
   color: #000;
   padding: 5px 10px;
-  width: 20px;
   border: none;
   border-radius: 5px;
   cursor: pointer;
-  opacity: 0; /* initially hide the remove button */
-  transition: opacity 0.3s ease; /* smooth transition on opacity change */
-`;
+  opacity: 0;
+  transition: opacity 0.3s ease;
 
-const ListItem = styled.li`
-  position: relative;
-  padding-right: 40px; /* space for the remove button */
+  ${ListItem}:hover & {
+    opacity: 1;
+  }
 
-  &:hover ${RemoveButton} {
-    opacity: 1; /* show the remove button on hover */
+  ${(props) =>
+    props.isHighlighted &&
+    `
+    opacity: 1;
+  `}
+
+  &:hover {
+    color: #ff0000;
   }
 `;
 
-const ActionButton = styled.button`
-  background-color: #016064;
-  color: #fff;
-  padding: 10px 20px;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-`;
+const handleConfirmMember = async () => {
+  try {
+    const response = await fetch("/api/addMember", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ email: newMember.trim() }),
+    });
+
+    if (response.ok) {
+      // Send invitation email using your chosen email service
+      // Example using SendGrid (replace with your chosen provider)
+      const sendEmailResponse = await fetch("/api/sendEmail", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email: newMember.trim() }),
+      });
+
+      if (sendEmailResponse.ok) {
+        console.log("Invitation email sent successfully.");
+      } else {
+        console.error("Failed to send invitation email.");
+      }
+
+      setListMembers([...listMembers, newMember.trim()]);
+      setNewMember("");
+      setError("");
+    } else {
+      console.error("Failed to save email to database.");
+    }
+  } catch (error) {
+    console.error("Error:", error);
+  }
+};
 
 const AddMembers: React.FC<AddMembersProps> = ({ onClose, members }) => {
-  const [newMember, setNewMember] = useState('');
+  const [newMember, setNewMember] = useState("");
   const [listMembers, setListMembers] = useState<string[]>(members || []);
-  const [error, setError] = useState<string>('');
+  const [error, setError] = useState<string>("");
+  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
 
   useEffect(() => {
     setListMembers(members || []);
@@ -129,24 +217,24 @@ const AddMembers: React.FC<AddMembersProps> = ({ onClose, members }) => {
   };
 
   const handleAddMember = () => {
-    if (newMember.trim() === '') {
-      setError('Email address is required.');
+    if (newMember.trim() === "") {
+      setError("Email address is required.");
       return;
     }
 
     if (!isValidEmail(newMember.trim())) {
-      setError('Please enter a valid email address.');
+      setError("Please enter a valid email address.");
       return;
     }
 
     if (listMembers.includes(newMember.trim())) {
-      setError('This member is already added.');
+      setError("This member is already added.");
       return;
     }
 
     setListMembers([...listMembers, newMember.trim()]);
-    setNewMember('');
-    setError('');
+    setNewMember("");
+    setError("");
   };
 
   const handleRemoveMember = (index: number) => {
@@ -161,9 +249,17 @@ const AddMembers: React.FC<AddMembersProps> = ({ onClose, members }) => {
     }
   };
 
+  const handleMouseEnter = (index: number) => {
+    setHoveredIndex(index);
+  };
+
+  const handleMouseLeave = () => {
+    setHoveredIndex(null);
+  };
+
   return (
     <Overlay onClick={handleOverlayClick}>
-      <Popup>
+      <Popup hasMembers={listMembers.length > 0}>
         <Header>
           <Title>Add Members</Title>
           <CloseButton onClick={onClose}>x</CloseButton>
@@ -175,23 +271,44 @@ const AddMembers: React.FC<AddMembersProps> = ({ onClose, members }) => {
             onChange={(e) => setNewMember(e.target.value)}
             placeholder="Enter Email Address"
           />
-          {error && <p style={{ color: 'red', marginTop: '5px' }}>{error}</p>}
+          {error && <p style={{ color: "red", marginTop: "5px" }}>{error}</p>}
         </InputContainer>
         <ButtonContainer>
           <AddButton onClick={handleAddMember}>Add Member</AddButton>
-          {listMembers.length > 0 && <ActionButton>Confirm</ActionButton>}
+          {listMembers.length > 0 && (
+            <ConfirmButton onClick={handleConfirmMember}>Confirm</ConfirmButton>
+          )}
         </ButtonContainer>
         {listMembers.length > 0 && (
           <>
             <Title>Member List</Title>
-            <NameList>
-              {listMembers.map((member, index) => (
-                <ListItem key={index}>
-                  {member}
-                  <RemoveButton onClick={() => handleRemoveMember(index)}>x</RemoveButton>
-                </ListItem>
-              ))}
-            </NameList>
+            <TableContainer>
+              <Table>
+                <thead>
+                  <tr>
+                    <Th>Email Address</Th>
+                    <Th>Action</Th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {listMembers.map((member, index) => (
+                    <ListItem
+                      key={index}
+                      onMouseEnter={() => handleMouseEnter(index)}
+                      onMouseLeave={handleMouseLeave}
+                      isHighlighted={hoveredIndex === index}
+                    >
+                      <Td>{member}</Td>
+                      <Td>
+                        <RemoveButton onClick={() => handleRemoveMember(index)}>
+                          Remove
+                        </RemoveButton>
+                      </Td>
+                    </ListItem>
+                  ))}
+                </tbody>
+              </Table>
+            </TableContainer>
           </>
         )}
       </Popup>

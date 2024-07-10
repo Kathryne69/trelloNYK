@@ -7,5 +7,6 @@ export default function CreateOrganizationPage() {
         afterSelectOrganizationUrl="/organization/:id"
         afterCreateOrganizationUrl="/organization/:id"
         />
+        
     );
 };
